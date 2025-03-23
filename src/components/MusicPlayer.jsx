@@ -1,10 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
 
 const MusicPlayer = () => {
   const [playlist, setPlaylist] = useState([]);
   const [currentTrack, setCurrentTrack] = useState(0);
+
+  // Load playlist from localStorage on component mount
+  useEffect(() => {
+    const savedPlaylist = JSON.parse(localStorage.getItem("playlist")) || [];
+    setPlaylist(savedPlaylist);
+  }, []);
+
+  // Save playlist to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("playlist", JSON.stringify(playlist));
+  }, [playlist]);
 
   const handleFileUpload = (e) => {
     const files = e.target.files;
@@ -20,7 +31,7 @@ const MusicPlayer = () => {
   };
 
   return (
-    <div className="mt-8">
+    <div className="mt-8 w-full max-w-md">
       <h2 className="text-2xl font-bold mb-4">Workout Playlist</h2>
       <input
         type="file"

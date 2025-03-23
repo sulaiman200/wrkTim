@@ -1,12 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const RoutineTracker = () => {
   const [routines, setRoutines] = useState([]);
   const [newRoutine, setNewRoutine] = useState("");
 
+  // Load routines from localStorage on component mount
+  useEffect(() => {
+    const savedRoutines = JSON.parse(localStorage.getItem("routines")) || [];
+    setRoutines(savedRoutines);
+  }, []);
+
+  // Save routines to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("routines", JSON.stringify(routines));
+  }, [routines]);
+
   const addRoutine = () => {
     if (newRoutine.trim()) {
-      setRoutines([...routines, { name: newRoutine, completed: false }]);
+      const updatedRoutines = [...routines, { name: newRoutine, completed: false }];
+      setRoutines(updatedRoutines);
       setNewRoutine("");
     }
   };
@@ -18,7 +30,7 @@ const RoutineTracker = () => {
   };
 
   return (
-    <div className="mt-8">
+    <div className="mt-8 w-full max-w-md">
       <h2 className="text-2xl font-bold mb-4">Workout Routines</h2>
       <div className="flex space-x-2">
         <input
@@ -30,7 +42,7 @@ const RoutineTracker = () => {
         />
         <button
           onClick={addRoutine}
-          className="bg-green-500 text-white px-4 py-2 rounded"
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
         >
           Add
         </button>

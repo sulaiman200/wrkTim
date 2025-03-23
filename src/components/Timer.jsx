@@ -1,45 +1,67 @@
 import React, { useState, useEffect } from "react";
 
 const Timer = () => {
-  const [time, setTime] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [laps, setLaps] = useState([]);
-  const [customTime, setCustomTime] = useState("");
+  const [workTime, setWorkTime] = useState(0); // Workout time in seconds
+  const [restTime, setRestTime] = useState(0); // Rest time in seconds
+  const [reps, setReps] = useState(0); // Number of reps
+  const [timeLeft, setTimeLeft] = useState(0); // Time left in the current phase (work or rest)
+  const [isRunning, setIsRunning] = useState(false); // Timer running state
+  const [isWorkPhase, setIsWorkPhase] = useState(true); // True for work phase, false for rest phase
+  const [currentRep, setCurrentRep] = useState(1); // Current rep number
 
+  // Handle timer countdown
   useEffect(() => {
     let interval;
-    if (isRunning) {
+    if (isRunning && timeLeft > 0) {
       interval = setInterval(() => {
-        setTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+        setTimeLeft((prevTime) => prevTime - 1);
       }, 1000);
+    } else if (isRunning && timeLeft === 0) {
+      // Switch between work and rest phases
+      if (isWorkPhase) {
+        // Switch to rest phase
+        setIsWorkPhase(false);
+        setTimeLeft(restTime);
+      } else {
+        // Switch to work phase and decrease reps
+        setIsWorkPhase(true);
+        setTimeLeft(workTime);
+        setCurrentRep((prevRep) => prevRep + 1);
+        if (currentRep >= reps) {
+          // Stop timer if all reps are done
+          setIsRunning(false);
+        }
+      }
     }
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, timeLeft, isWorkPhase, workTime, restTime, reps, currentRep]);
 
+  // Start the timer
   const startTimer = () => {
-    if (time > 0) setIsRunning(true);
+    if (workTime > 0 && restTime > 0 && reps > 0) {
+      setTimeLeft(workTime);
+      setIsRunning(true);
+      setIsWorkPhase(true);
+      setCurrentRep(1);
+    }
   };
 
-  const stopTimer = () => setIsRunning(false);
-
-  const resetTimer = () => {
-    setTime(0);
-    setLaps([]);
+  // Stop the timer
+  const stopTimer = () => {
     setIsRunning(false);
   };
 
-  const addLap = () => {
-    if (time > 0) setLaps([...laps, time]);
+  // Reset the timer
+  const resetTimer = () => {
+    setIsRunning(false);
+    setWorkTime(0);
+    setRestTime(0);
+    setReps(0);
+    setTimeLeft(0);
+    setCurrentRep(1);
   };
 
-  const handleSetTime = () => {
-    const timeInSeconds = parseInt(customTime, 10);
-    if (!isNaN(timeInSeconds)) {
-      setTime(timeInSeconds);
-      setCustomTime("");
-    }
-  };
-
+  // Format time in MM:SS format
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
@@ -48,23 +70,45 @@ const Timer = () => {
 
   return (
     <div className="text-center w-full max-w-md">
-      <h1 className="text-4xl font-bold mb-4">{formatTime(time)}</h1>
-      <div className="flex space-x-2 mb-4">
-        <input
-          type="number"
-          value={customTime}
-          onChange={(e) => setCustomTime(e.target.value)}
-          placeholder="Set time in seconds"
-          className="flex-1 p-2 border border-gray-600 rounded bg-gray-800 text-white"
-        />
-        <button
-          onClick={handleSetTime}
-          className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-        >
-          Set Time
-        </button>
+      <h1 className="text-4xl font-bold mb-4">
+        {isWorkPhase ? "Work Time" : "Rest Time"}
+      </h1>
+      <h2 className="text-3xl font-bold mb-4">{formatTime(timeLeft)}</h2>
+      <div className="mb-4">
+        <p className="text-lg">
+          Rep {currentRep} of {reps}
+        </p>
       </div>
-      <div className="space-x-4">
+      <div className="space-y-4">
+        <div className="flex space-x-2">
+          <input
+            type="number"
+            value={workTime}
+            onChange={(e) => setWorkTime(parseInt(e.target.value, 10))}
+            placeholder="Work Time (seconds)"
+            className="flex-1 p-2 border border-gray-600 rounded bg-gray-800 text-white"
+          />
+        </div>
+        <div className="flex space-x-2">
+          <input
+            type="number"
+            value={restTime}
+            onChange={(e) => setRestTime(parseInt(e.target.value, 10))}
+            placeholder="Rest Time (seconds)"
+            className="flex-1 p-2 border border-gray-600 rounded bg-gray-800 text-white"
+          />
+        </div>
+        <div className="flex space-x-2">
+          <input
+            type="number"
+            value={reps}
+            onChange={(e) => setReps(parseInt(e.target.value, 10))}
+            placeholder="Number of Reps"
+            className="flex-1 p-2 border border-gray-600 rounded bg-gray-800 text-white"
+          />
+        </div>
+      </div>
+      <div className="mt-4 space-x-4">
         <button
           onClick={startTimer}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -83,22 +127,6 @@ const Timer = () => {
         >
           Reset
         </button>
-        <button
-          onClick={addLap}
-          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-        >
-          Lap
-        </button>
-      </div>
-      <div className="mt-4">
-        <h2 className="text-2xl font-bold">Laps</h2>
-        <ul>
-          {laps.map((lap, index) => (
-            <li key={index} className="text-lg">
-              Lap {index + 1}: {formatTime(lap)}
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );

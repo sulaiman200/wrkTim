@@ -26,8 +26,18 @@ const MusicPlayer = () => {
     setPlaylist(newPlaylist);
   };
 
-  const handleTrackEnd = () => {
+  const handleNext = () => {
     setCurrentTrack((prevTrack) => (prevTrack + 1) % playlist.length);
+  };
+
+  const handlePrevious = () => {
+    setCurrentTrack((prevTrack) =>
+      prevTrack === 0 ? playlist.length - 1 : prevTrack - 1
+    );
+  };
+
+  const handleTrackEnd = () => {
+    handleNext();
   };
 
   return (
@@ -46,6 +56,8 @@ const MusicPlayer = () => {
           src={playlist[currentTrack].src}
           onPlay={(e) => console.log("Playing")}
           onEnded={handleTrackEnd}
+          onClickNext={handleNext}
+          onClickPrevious={handlePrevious}
           className="bg-gray-800 rounded-lg"
         />
       )}
